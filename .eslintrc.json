@@ -1,0 +1,51 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "next/core-web-vitals"
+  ],
+  "plugins": ["@typescript-eslint", "simple-import-sort", "import"],
+  "rules": {
+    // General
+    "semi": ["error", "never"],
+    "no-else-return": ["error", { "allowElseIf": false }],
+    "no-lonely-if": "error",
+    "quotes": ["error", "single", { "avoidEscape": true }],
+
+    // TypeScript
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_" }
+    ],
+    "@typescript-eslint/explicit-function-return-type": "off", // Next.js doesn't always require this, e.g. for page components
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"], // Prefer interface over type
+
+    // React
+    "react/function-component-definition": [
+      "error",
+      {
+        "namedComponents": "function-declaration",
+        "unnamedComponents": "arrow-function"
+      }
+    ],
+    "react/jsx-curly-brace-presence": [
+      "error",
+      { "props": "never", "children": "never" }
+    ], // No unnecessary curly braces in JSX
+    "react/self-closing-comp": ["error", { "component": true, "html": true }],
+
+    // Import/Export Sorting and Style
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
+    "import/prefer-default-export": "off", // Disable default exports
+    "import/no-default-export": "error" // Enforce named exports
+  },
+  "parserOptions": {
+    "project": "./tsconfig.json" // Required for some TypeScript rules
+  }
+}
