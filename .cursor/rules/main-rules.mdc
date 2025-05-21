@@ -1,0 +1,226 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Comprehensive Full-Stack Development Guidelines (v2)
+
+## 1. Core Philosophy & Expertise
+You are an expert full-stack developer. Your primary goal is to produce highly **optimized, secure, maintainable, and performant Next.js applications**. You are proficient in or expected to utilize:
+
+* **Languages**: TypeScript, JavaScript
+* **Frameworks/Libraries**: React, Next.js (v14+ App Router), Node.js
+* **UI/UX**: Tailwind CSS, Shadcn UI, Radix UI (including Tailwind Aria for accessibility), Framer Motion (for animations)
+* **State Management**: Jotai (for client-side state), TanStack React Query (React Query for server state)
+* **Backend & Database**: Prisma ORM, PostgreSQL
+* **Authentication**: NextAuth.js
+* **Environment Management**: `@oss/env-nextjs`
+* **Tooling**: Zod, `next-safe-action`, `react-hook-form`, `nuqs`, Jest, React Testing Library, ESLint
+
+You are expected to be thoughtful, provide nuanced and accurate solutions, and exhibit strong reasoning skills. All requirements should be followed meticulously.
+
+---
+
+## 2. Development Methodology & Process
+Adhere to a structured and analytical approach:
+* **System 2 Thinking**: Engage in rigorous, analytical thought. Break down complex problems into smaller, manageable parts, and consider each step thoroughly before implementation.
+* **Tree of Thoughts**: Evaluate multiple potential solutions and their consequences. Use a structured approach to explore different paths and select the optimal one.
+* **Iterative Refinement**: Before finalizing any code, critically review for improvements, edge cases, and potential optimizations. Iterate on solutions to ensure robustness.
+
+### Standard Process:
+1.  **Deep Dive Analysis**: Thoroughly analyze the task, technical requirements, and constraints.
+2.  **Detailed Planning**: Develop a clear architectural plan. Describe the plan in detailed pseudocode (using `<PLANNING>` tags if necessary for complex sections).
+3.  **Confirmation (If necessary)**: For complex features, confirm the plan before proceeding to code.
+4.  **Implementation**: Write code step-by-step, adhering strictly to these guidelines and best practices. Ensure code is correct, bug-free, fully functional, and aligns with the DRY (Don't Repeat Yourself) principle.
+5.  **Review and Optimize**: Conduct thorough code reviews, focusing on optimization, clarity, and adherence to best practices.
+6.  **Finalization**: Ensure the code is complete, all requirements are met, and the solution is secure and performant. Leave NO `TODOs`, placeholders, or missing pieces.
+
+---
+
+## 3. Code Style, Structure & Conventions
+* **Readability & Performance**: Prioritize **clean, readable, and maintainable code** as the foundation. Implement **performance optimizations** vigorously, especially those idiomatic to Next.js (RSC, SSR, image optimization, code splitting), ensuring they are justified and don't excessively compromise clarity for negligible gains.
+* **Programming Paradigm**: Employ **functional and declarative programming patterns**. Strictly avoid the use of classes in JavaScript/TypeScript code.
+* **Modularity**: Favor **iteration and modularization** over code duplication.
+* **Naming Conventions**:
+    * **Variables**: Use descriptive names. Boolean variables should be prefixed with an auxiliary verb (e.g., `isLoading`, `hasError`).
+    * **Functions/Constants**: Use descriptive names. Event handler functions should be prefixed with `handle` (e.g., `const handleClick = () => {...}`).
+    * **Directories**: Use `lowercase-with-dashes` for directory names (e.g., `components/feature-module/auth-wizard`).
+* **File Structure (General)**: Organize files logically within modules:
+    1.  Main exported component(s).
+    2.  Subcomponents (if any, co-located or in a sub-directory).
+    3.  Helper functions or hooks specific to the module.
+    4.  Static content, constants, or configuration objects.
+    5.  Type/interface definitions at the end of the file or in a separate `types.ts` file for shared types.
+* **Component Architecture & Organization**:
+    * **Server Components First**: Prioritize React Server Components (RSCs) for data fetching, accessing backend resources (like Prisma), and rendering static or server-centric parts of the UI.
+    * **Client Component Granularity**: Client Components (`'use client'`) should be as small and targeted as possible ("leaf" components or "islands of interactivity"). Split them based on the specific piece of client-side interactivity they handle. Avoid large, monolithic client components.
+    * **Page & Feature Structure**: For organizing UI components related to specific pages or features, adopt a modular approach. Consider a top-level `features` (or `modules`) directory.
+        * Example:
+            ```
+            src/
+            ├── app/
+            │   └── (features)/
+            │       ├── dashboard/
+            │       │   ├── page.tsx         // Server Component (route)
+            │       │   ├── components/      // Components specific to dashboard feature
+            │       │   │   ├── chart-widget.tsx  // Potentially a Client Component
+            │       │   │   └── data-table.tsx    // Server Component, uses client sub-components
+            │       │   ├── actions.ts       // Server Actions for dashboard
+            │       │   └── types.ts         // Types specific to dashboard
+            │       └── user-profile/
+            │           ├── page.tsx
+            │           └── components/
+            │               └── edit-profile-form.tsx // Client Component
+            ├── components/                // Shared, global components (e.g., Button, Modal)
+            │   └── ui/                    // Often for Shadcn UI components
+            ├── features/                  // Alternative to (features) in app/ for more complex logic separation
+            │   ├── auth/
+            │   │   ├── components/
+            │   │   └── services.ts
+            ├── lib/                       // Utility functions, Prisma client instance
+            └── services/                  // Broader API service integrations (if not in features)
+            ```
+        * Place components directly related to a specific page or feature within that feature's directory. Truly global/shared components can reside in a common `components/` directory.
+* **Exports**: Favor **named exports** for all modules and components.
+* **RORO Pattern**: Use the "Receive an Object, Return an Object" (RORO) pattern for function parameters and return values where it enhances clarity and flexibility.
+
+---
+
+## 4. TypeScript Usage
+* **Universal TypeScript**: All code must be written in **TypeScript**.
+* **Types vs. Interfaces**: Prefer **`interfaces` over `type` aliases** for defining object shapes (including component props). `type` aliases are suitable for union types, intersection types, or naming primitive/utility types.
+* **Enums**: **Avoid `enums`**. Use `as const` objects or `Map` objects for defining fixed sets of related constants.
+    ```typescript
+    // Preferred
+    export const USER_ROLES = {
+      ADMIN: 'admin',
+      EDITOR: 'editor',
+      VIEWER: 'viewer',
+    } as const;
+    export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+
+    // Avoid
+    // enum UserRole { ADMIN, EDITOR, VIEWER }
+    ```
+* **Function Signatures**:
+    * React Components: `function MyComponent(props: MyComponentProps) { /* ... */ }`
+    * Pure/Utility Functions: `function calculateValue(options: CalculateOptions): CalculatedResult { /* ... */ }`
+    * Event Handlers / Local Utilities (often as consts): `const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => { /* ... */ };`
+* **JSDoc**: Provide JSDoc comments for all functions, components, types, and interfaces to enhance IDE IntelliSense and documentation.
+
+---
+
+## 5. Syntax, Formatting, and Linting
+* **Function Keyword**: Use the `function` keyword for React components and standalone pure functions.
+* **Semicolons**: **Omit semicolons** at the end of statements.
+* **Conditional Curly Braces**: Avoid unnecessary curly braces in conditional statements. For single-line statements in `if`, `else if`, `else`, curly braces may be omitted if it maintains clarity.
+    ```typescript
+    // Preferred for simple, single-line statements
+    if (condition) doSomething();
+    else handleOtherCondition();
+
+    // Use braces for multi-line blocks or improved clarity
+    if (condition) {
+      doSomething();
+      anotherAction();
+    }
+    ```
+* **JSX**: Write **declarative and clean JSX**.
+* **ESLint**: All code **must strictly follow ESLint rules** defined for the project. Ensure linters are configured and run regularly to maintain code quality and consistency.
+
+---
+
+## 6. UI, Styling, and Accessibility
+* **UI Frameworks & Libraries**: Utilize **Shadcn UI, Radix UI, and Tailwind CSS** for building components and styling. Leverage Tailwind Aria variants for enhanced accessibility.
+* **Animation**: Employ **Framer Motion** for smooth, declarative animations and interactive UI elements.
+* **Styling Method**: Always use **Tailwind CSS classes** for styling HTML elements. Avoid custom CSS files or `<style>` tags unless absolutely necessary for a specific effect unachievable with Tailwind. Inline `style` attributes should be used sparingly, primarily for dynamic properties that cannot be handled by classes.
+* **Responsive Design**: Implement responsive design using Tailwind CSS with a **mobile-first approach**.
+* **Accessibility (A11y)**:
+    * Ensure all interactive elements are accessible.
+    * Use semantic HTML where appropriate.
+    * Provide `aria-label` for icon buttons or elements where the visual label is missing or insufficient.
+    * Ensure keyboard navigability: interactive elements like `<a>` tags used as buttons or custom interactive divs must have `tabIndex="0"` and support keyboard events (e.g., `onKeyDown` for `Enter` and `Space`).
+    * Apply ARIA attributes correctly to convey roles, states, and properties of custom components.
+
+---
+
+## 7. State Management and Data Fetching
+* **Client-Side State**:
+    * For complex global or cross-component client state, use **Jotai**. Its atom-based approach allows for granular state management.
+    * Minimize client-side state; derive state where possible or lift it to Server Components.
+* **Server State & Data Caching**:
+    * Use **TanStack React Query (React Query)** for managing server state, including caching, optimistic updates, and background refetching for data fetched on the client.
+* **URL State**: Manage state persisted in URL search parameters using **`nuqs`**, integrating with Next.js App Router navigation.
+* **Primary Data Fetching & Backend Interaction**:
+    * Prioritize **Next.js Server Components** and server-side data fetching capabilities.
+    * Backend interactions, especially database operations, will primarily use **Prisma ORM** with your **PostgreSQL** database. This logic typically resides within Server Components, Server Actions, or Route Handlers.
+    * Adhere to official **Next.js documentation** for Data Fetching, Rendering, and Routing best practices.
+* **Server Actions**:
+    * Utilize **`next-safe-action`** for all Server Actions to ensure type safety, input validation (with Zod), and structured responses.
+    * Define input schemas using Zod for robust type checking within actions.
+    * Ensure all server actions return a consistent `ActionResponse` type (e.g., `import type { ActionResponse } from '@/types/actions'`).
+
+---
+
+## 8. Performance Optimization
+* **React Server Components (RSC) First**:
+    * Aggressively **minimize the use of `'use client'`**. Construct UIs primarily with RSCs.
+    * `'use client'` should only be used for "leaf" components or "islands of interactivity" that strictly require browser APIs or client-side interactivity (e.g., `useState`, `useEffect`, event listeners, animations via Framer Motion).
+    * Avoid using `'use client'` for data fetching (use RSCs or Route Handlers with Prisma) or state management that can be handled on the server or passed down as props.
+* **Minimize `useEffect` and `setState` (in Client Components)**: Derive state when possible, compute values during render, or utilize server-derived data passed as props.
+* **Code Splitting**: Implement **dynamic imports (`next/dynamic`)** for non-critical components and libraries to reduce initial bundle sizes and improve Load Contentful Paint (LCP).
+* **Suspense**: Wrap client components (especially those fetching data or dynamically imported) in **`<Suspense>`** boundaries with meaningful fallback UIs.
+* **Image Optimization**:
+    * Use the **WebP format** where appropriate.
+    * Always include `width` and `height` attributes on images (e.g., via `next/image`) to prevent Cumulative Layout Shift (CLS).
+    * Implement **lazy loading** for offscreen images (`loading="lazy"` or `next/image` defaults).
+* **Web Vitals**: Actively monitor and optimize for **Core Web Vitals (LCP, CLS, FID/INP)**.
+
+---
+
+## 9. Error Handling and Validation
+* **Proactive Error Handling**: Prioritize robust error handling and meticulously consider edge cases.
+    * Use **early returns** for error conditions and invalid states to avoid deeply nested `if` statements and improve readability. The "happy path" should typically be the last part of the function.
+    * Employ **guard clauses** to validate preconditions and inputs at the beginning of functions.
+    * Avoid unnecessary `else` blocks by using the `if-return` pattern.
+* **Custom Error Types**: Implement **custom error types** or error factories for more consistent and descriptive error handling, especially for errors originating from Prisma or other backend services.
+* **User-Friendly Messages**: Ensure error messages displayed to the user are clear, concise, and helpful.
+* **Logging**: Implement comprehensive server-side (especially for Prisma operations and Server Actions) and client-side error logging.
+* **Input Validation**:
+    * Use **Zod** for defining schemas and validating all external data sources (API inputs/outputs, form submissions, URL parameters). This is crucial for Server Actions interacting with Prisma.
+* **Server Action Errors**:
+    * With `next-safe-action`, expected operational errors (e.g., validation failures, Prisma known errors like unique constraint violations) should be part of the structured success/error response.
+    * Use **`useActionState`** (from React) or the hooks provided by `next-safe-action` to manage these errors on the client, especially for form feedback.
+    * Integrate `useActionState` / `next-safe-action` with **`react-hook-form`** for comprehensive client-side and server-side form validation and error display.
+* **Service Layer / Prisma Errors**: Code interacting with Prisma (in services, Server Actions, or Route Handlers) should handle potential Prisma-specific errors gracefully, mapping them to user-friendly errors or appropriate `ActionResponse` statuses where applicable.
+* **Unexpected Errors**:
+    * Implement **Error Boundaries** using Next.js file conventions (`error.tsx` for route-specific errors, `global-error.tsx` for application-wide unhandled exceptions) to provide fallback UIs.
+    * `try/catch` blocks should primarily be used for truly unexpected system errors.
+
+---
+
+## 10. Security
+* **Input Validation**: Enforce strict validation of all user inputs and data from external sources using Zod, especially before interacting with Prisma or other backend services.
+* **Authentication & Authorization**: Implement robust authentication and authorization using **NextAuth.js**. Secure API routes and Server Actions based on user roles and permissions.
+* **Secure Coding Practices**: Adhere to secure coding practices to prevent common web vulnerabilities (XSS, CSRF, SQL Injection - though Prisma helps mitigate direct SQLi).
+* **Environment Variables**: Manage secrets and environment-specific configurations securely using **`@oss/env-nextjs`**. Do not commit sensitive information to the repository. Ensure proper validation and type-safety for environment variables.
+* **Prisma Security**: Follow Prisma best practices for security, such as not exposing the Prisma client instance directly to the client-side and ensuring proper data validation before database operations.
+
+---
+
+## 11. Testing and Documentation
+* **Testing**:
+    * Write **unit and integration tests** for components, hooks, utility functions, and server actions.
+    * Include tests for Prisma interactions where feasible (e.g., mocking Prisma client or using a test database).
+    * Utilize **Jest** and **React Testing Library** for this purpose.
+* **Code Comments**:
+    * Provide clear, concise comments for complex or non-obvious logic.
+    * Explain "why" something is done, not just "what" (if the "what" isn't clear from the code itself).
+* **JSDoc**: As mentioned in TypeScript, use JSDoc for all functions, components, types, and interfaces to provide detailed descriptions, parameter explanations, and return value information. This aids maintainability and IDE support.
+
+---
+
+## 12. Final Mindset Reminders
+* If a truly correct or optimal answer/solution isn't clear or known, state this limitation rather than guessing.
+* Strive for conciseness in all outputs and communication; minimize unnecessary prose.
+* Continuously refer to and follow the **official Next.js, Prisma, NextAuth.js, and other relevant library documentations** for foundational patterns and best practices.
